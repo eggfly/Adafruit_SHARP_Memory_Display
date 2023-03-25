@@ -48,6 +48,7 @@ public:
   void clearDisplay();
   void refresh(void);
   void clearDisplayBuffer();
+  void set3BitDrawPixelMode(bool enable);
 
 private:
   Adafruit_SPIDevice *spidev = NULL;
@@ -55,6 +56,7 @@ private:
   uint8_t _cs;
   uint8_t _sharpmem_vcom;
   uint8_t _color_depth_bits;
+  bool _enable_3_bit_draw_pixel_mode = false;
 };
 
 #endif

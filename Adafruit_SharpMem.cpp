@@ -35,6 +35,11 @@ All text above, and the splash screen must be included in any redistribution
   }
 #endif
 
+#define RGB565_RED_1BIT(c)     (((c & 0xF800) >> 11) >> 4)
+#define RGB565_GREEN_1BIT(c)   (((c & 0x7E0) >> 5) >> 5)
+#define RGB565_BLUE_1BIT(c)    (((c & 0x1F) << 3) >> 4)
+
+
 /**************************************************************************
     Sharp Memory Display Connector
     -----------------------------------------------------------------------
@@ -169,8 +174,16 @@ void Adafruit_SharpMem::drawPixel(int16_t x, int16_t y, uint16_t color) {
     y = HEIGHT - 1 - y;
     break;
   }
+  uint16_t _3bit_color;
+  if (_enable_3_bit_draw_pixel_mode) {
+    // 3 bit color: BGR order
+    _3bit_color = (RGB565_BLUE_1BIT(color) << 2) |
+                  (RGB565_GREEN_1BIT(color) << 1) | RGB565_RED_1BIT(color);
+  } else {
+    _3bit_color = color;
+  }
   for (int i = 0; i < _color_depth_bits; i++) {
-    if (color & set[i]) {
+    if (_3bit_color & set[i]) {
       sharpmem_buffer[((y * WIDTH + x) * _color_depth_bits + i) / 8] |=
           pgm_read_byte(&set[(x * _color_depth_bits + i) & 7]);
     } else {
@@ -283,4 +296,8 @@ void Adafruit_SharpMem::refresh(void) {
 /**************************************************************************/
 void Adafruit_SharpMem::clearDisplayBuffer() {
   memset(sharpmem_buffer, 0xff, (WIDTH * HEIGHT * _color_depth_bits) / 8);
+}
+
+void Adafruit_SharpMem::set3BitDrawPixelMode(bool enable) {
+  _enable_3_bit_draw_pixel_mode = enable;
 }
